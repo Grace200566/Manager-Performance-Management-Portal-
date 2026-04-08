@@ -415,9 +415,104 @@
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* ── LOGIN ── */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0a0f1e;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 48px 40px;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px;
+    background: rgba(15,22,40,0.9);
+    text-align: center;
+  }
+  .login-icon { font-size: 36px; margin-bottom: 20px; }
+  .login-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #f0ede6;
+    margin-bottom: 6px;
+  }
+  .login-box p { font-size: 13px; color: #8a8fa8; margin-bottom: 32px; line-height: 1.6; }
+  .login-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #f0ede6;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    margin-bottom: 16px;
+    text-align: center;
+    letter-spacing: 0.1em;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: rgba(201,168,76,0.4); }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #c9a84c, #e8c97a);
+    border: none;
+    border-radius: 8px;
+    color: #0a0f1e;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .login-btn:hover { opacity: 0.88; }
+  .login-error { font-size: 13px; color: #f87171; margin-top: 12px; min-height: 18px; }
+  .login-footer { font-size: 11px; color: #4a5068; margin-top: 24px; letter-spacing: 0.08em; text-transform: uppercase; }
 </style>
 </head>
 <body>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-icon">✦</div>
+    <h2>Manager Portal</h2>
+    <p>此系統僅供授權主管使用<br>請輸入存取密碼</p>
+    <input type="password" class="login-input" id="passwordInput" placeholder="輸入密碼" onkeydown="if(event.key==='Enter') checkPassword()"/>
+    <button class="login-btn" onclick="checkPassword()">進入系統</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-footer">AI 績效導航系統 · 授權存取</div>
+  </div>
+</div>
+
+<script>
+function checkPassword() {
+  var input = document.getElementById('passwordInput').value;
+  var error = document.getElementById('loginError');
+  if (input === 'Aq12ws3ed') {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    sessionStorage.setItem('mp_auth', '1');
+  } else {
+    error.textContent = '密碼錯誤，請重新輸入';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+if (sessionStorage.getItem('mp_auth') === '1') {
+  document.addEventListener('DOMContentLoaded', function() {
+    var o = document.getElementById('loginOverlay');
+    if (o) o.classList.add('hidden');
+  });
+}
+</script>
+
 <div class="noise"></div>
 
 <div class="container">
