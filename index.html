@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 績效導航系統 — Manager Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+TC:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --bg2: #0f1628;
+    --bg3: #151d35;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.1);
+    --text: #f0ede6;
+    --text-muted: #8a8fa8;
+    --text-dim: #4a5068;
+    --border: rgba(201,168,76,0.2);
+    --border-subtle: rgba(255,255,255,0.06);
+    --card-bg: rgba(15,22,40,0.8);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background atmosphere */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -10%;
+    left: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Noise texture overlay */
+  .noise {
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 64px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    background: var(--gold-dim);
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', 'Noto Serif TC', serif;
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s 0.15s ease both;
+  }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 0 auto 48px;
+    line-height: 1.7;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  /* Flow steps */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-label {
+    background: var(--bg3);
+    border: 1px solid var(--border-subtle);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .flow-label:hover {
+    border-color: var(--border);
+    color: var(--gold-light);
+  }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 14px;
+    padding: 0 8px;
+  }
+
+  /* ── DIVIDER ── */
+  .section-label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    padding-top: 8px;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .gold-line {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 48px;
+    animation: fadeUp 0.6s 0.35s ease both;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 80px;
+  }
+
+  @media (max-width: 680px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease both;
+    backdrop-filter: blur(12px);
+  }
+
+  .card:nth-child(1) { animation-delay: 0.45s; }
+  .card:nth-child(2) { animation-delay: 0.5s; }
+  .card:nth-child(3) { animation-delay: 0.55s; }
+  .card:nth-child(4) { animation-delay: 0.6s; }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--border);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,168,76,0.1);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .icon-1 { background: rgba(201,168,76,0.12); }
+  .icon-2 { background: rgba(45,212,191,0.1); }
+  .icon-3 { background: rgba(167,139,250,0.1); }
+  .icon-4 { background: rgba(251,146,60,0.1); }
+
+  .card-num {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding-top: 4px;
+  }
+
+  .card-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .card-timing {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--gold);
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 100px;
+    padding: 4px 12px;
+    width: fit-content;
+  }
+
+  .card-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    flex: 1;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+
+  .card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: auto;
+  }
+
+  .cta-text {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .cta-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .card:hover .cta-arrow {
+    background: var(--gold);
+    color: var(--bg);
+    transform: translateX(2px);
+  }
+
+  /* ── COPILOT BANNER ── */
+  .copilot-banner {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 36px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 80px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, rgba(45,212,191,0.03) 100%);
+    animation: fadeUp 0.6s 0.65s ease both;
+  }
+
+  .copilot-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .copilot-text h3 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--gold-light);
+  }
+
+  .copilot-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border-subtle);
+    padding: 28px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: fadeUp 0.6s 0.7s ease both;
+  }
+
+  footer span { color: var(--text-muted); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">Manager Portal · AI 績效導航系統</div>
+    <p class="hero-sub">AI Performance Management System</p>
+    <h1>帶領團隊<span>，</span><br>看見看不見的細節</h1>
+    <p class="hero-desc">四個模組涵蓋完整的管理週期，從目標設定到人才盤點，每一步都有 Copilot 陪你。</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <span class="flow-label">承上啟下</span>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-label">偵測進度</span>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-label">績效輔導</span>
+        <span class="flow-arrow">→</span>
+      </div>
+      <div class="flow-step">
+        <span class="flow-label">人才盤點</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="gold-line"></div>
+  <p class="section-label">選擇你現在需要的模組</p>
+
+  <!-- CARDS -->
+  <div class="cards">
+
+    <a href="https://udify.app/chat/M5DMAsUigFFlgshx" target="_blank" class="card">
+      <div class="card-top">
+        <div class="card-icon icon-1">🎯</div>
+        <span class="card-num">模組 01</span>
+      </div>
+      <div class="card-title">承上啟下<br>訂立部門目標</div>
+      <span class="card-timing">📅 年初使用</span>
+      <p class="card-desc">承接公司目標，用「三層蛋糕」框架轉化成部門行動藍圖。Base Line 提效率、New Initiatives 達今年目標、Big Play 布局未來，並生成可分享給部屬的部門目標計劃書。</p>
+      <div class="card-tags">
+        <span class="tag">三層蛋糕框架</span>
+        <span class="tag">目標 Cascade</span>
+        <span class="tag">AI 擁抱提示</span>
+      </div>
+      <div class="card-cta">
+        <span class="cta-text">進入模組 1</span>
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <a href="https://udify.app/chat/ZDFtbIKcLEFnfdgr" target="_blank" class="card">
+      <div class="card-top">
+        <div class="card-icon icon-2">📊</div>
+        <span class="card-num">模組 02</span>
+      </div>
+      <div class="card-title">偵測目標進度<br>團隊管理儀表板</div>
+      <span class="card-timing">📅 日常運作</span>
+      <p class="card-desc">逐一分析員工的工作進度，對照績效期望給出客觀回饋。生成團隊進度儀表板，一眼看出誰需要關注、誰值得表揚，並為 1-on-1 輔導做好準備。</p>
+      <div class="card-tags">
+        <span class="tag">STAR 紀錄分析</span>
+        <span class="tag">團隊儀表板</span>
+        <span class="tag">1-on-1 準備</span>
+      </div>
+      <div class="card-cta">
+        <span class="cta-text">進入模組 2</span>
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <a href="https://udify.app/chat/nbu0VEC0fKfVlmii" target="_blank" class="card">
+      <div class="card-top">
+        <div class="card-icon icon-3">🎭</div>
+        <span class="card-num">模組 03</span>
+      </div>
+      <div class="card-title">情境式績效輔導<br>Role Play 練習</div>
+      <span class="card-timing">📅 日常運作</span>
+      <p class="card-desc">根據員工的能力與意願，診斷落在哪個象限，給出最精準的輔導方式（教導、輔導、訓導、開導、引導）。透過 Role Play 練習困難對話，做到理直氣宜和，不帶怒氣怨氣。</p>
+      <div class="card-tags">
+        <span class="tag">4象限診斷</span>
+        <span class="tag">GROW Model</span>
+        <span class="tag">Role Play</span>
+      </div>
+      <div class="card-cta">
+        <span class="cta-text">進入模組 3</span>
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+    <a href="https://udify.app/chat/Awb2zW8lt7sidqt8" target="_blank" class="card">
+      <div class="card-top">
+        <div class="card-icon icon-4">🏆</div>
+        <span class="card-num">模組 04</span>
+      </div>
+      <div class="card-title">績效評核<br>人才盤點</div>
+      <span class="card-timing">📅 季度／年中／年底</span>
+      <p class="card-desc">支援季度初步評核、年中正式評核和年底總評核三種模式。生成4象限人才矩陣，AI 建議 Top Talent 和 PIP 標籤，主管最終拍板，並自動生成校準會議準備清單。</p>
+      <div class="card-tags">
+        <span class="tag">4象限矩陣</span>
+        <span class="tag">Top Talent / PIP</span>
+        <span class="tag">校準會議</span>
+      </div>
+      <div class="card-cta">
+        <span class="cta-text">進入模組 4</span>
+        <span class="cta-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- COPILOT BANNER -->
+  <div class="copilot-banner">
+    <div class="copilot-icon">✦</div>
+    <div class="copilot-text">
+      <h3>你的 AI 策略夥伴 Copilot</h3>
+      <p>Copilot 不是幫你做決定，而是幫你看見看不見的細節、說出有溫度的建議。每一個模組背後，都有完整的績效管理知識庫支撐，讓 AI 真正成為你帶團隊的左右手。</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>AI 績效導航系統 · <span>Manager Portal</span> · Copilot 陪你走完每一步</p>
+</footer>
+
+</body>
+</html>
